@@ -30,8 +30,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid login ID ya password." }, { status: 401 });
   }
 
-  const profile = await prisma.profile.findUnique({ where: { authUserId: data.user.id } }).catch((error) => {
-    console.error("Login profile lookup failed", error);
+  const profileByAuthId = await prisma.profile.findUnique({ where: { authUserId: data.user.id } }).catch((error) => {
+    console.error("Login profile lookup by auth id failed", error);
+    return null;
+  });
+  const profile = profileByAuthId ?? await prisma.profile.findUnique({ where: { email } }).catch((error) => {
+    console.error("Login profile lookup by email failed", error);
     return null;
   });
 

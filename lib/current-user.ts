@@ -45,6 +45,22 @@ function toCurrentProfile(profile: {
   };
 }
 
+async function findProfileForAuthUser(user: { email?: string | null; id: string }) {
+  const profileByAuthId = await prisma.profile.findUnique({ where: { authUserId: user.id } }).catch((error) => {
+    console.error("Profile lookup by auth id failed", error);
+    return null;
+  });
+
+  if (profileByAuthId) return profileByAuthId;
+
+  if (!user.email) return null;
+
+  return prisma.profile.findUnique({ where: { email: user.email.toLowerCase() } }).catch((error) => {
+    console.error("Profile lookup by email failed", error);
+    return null;
+  });
+}
+
 export async function getAuthenticatedProfile(): Promise<CurrentProfile | null> {
   const supabase = await createSupabaseServerClient({ readOnly: true }).catch((error) => {
     console.error("Supabase server client creation failed", error);
@@ -63,10 +79,7 @@ export async function getAuthenticatedProfile(): Promise<CurrentProfile | null> 
 
   if (error || !user) return null;
 
-  const profile = await prisma.profile.findUnique({ where: { authUserId: user.id } }).catch((error) => {
-    console.error("Profile lookup failed", error);
-    return null;
-  });
+  const profile = await findProfileForAuthUser(user);
 
   if (!profile || !profile.isActive) return null;
 
