@@ -30,8 +30,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid login ID ya password." }, { status: 401 });
   }
 
-  const profile = await prisma.profile.findUnique({
-    where: { authUserId: data.user.id }
+  const profile = await prisma.profile.findUnique({ where: { authUserId: data.user.id } }).catch((error) => {
+    console.error("Login profile lookup failed", error);
+    return null;
   });
 
   if (!profile || !profile.isActive) {
@@ -47,6 +48,8 @@ export async function POST(request: NextRequest) {
       entityType: "profile",
       metadata: { email: profile.email, ipAddress, role: profile.role, userAgent }
     }
+  }).catch((error) => {
+    console.error("Login audit write failed", error);
   });
 
   const response = NextResponse.json({ ok: true, redirectTo: getDefaultPath(profile.role) });

@@ -46,15 +46,26 @@ function toCurrentProfile(profile: {
 }
 
 export async function getAuthenticatedProfile(): Promise<CurrentProfile | null> {
-  const supabase = await createSupabaseServerClient({ readOnly: true });
+  const supabase = await createSupabaseServerClient({ readOnly: true }).catch((error) => {
+    console.error("Supabase server client creation failed", error);
+    return null;
+  });
+
+  if (!supabase) return null;
+
   const {
-    data: { user }
-  } = await supabase.auth.getUser();
+    data: { user },
+    error
+  } = await supabase.auth.getUser().catch((error) => {
+    console.error("Supabase user lookup failed", error);
+    return { data: { user: null }, error };
+  });
 
-  if (!user) return null;
+  if (error || !user) return null;
 
-  const profile = await prisma.profile.findUnique({
-    where: { authUserId: user.id }
+  const profile = await prisma.profile.findUnique({ where: { authUserId: user.id } }).catch((error) => {
+    console.error("Profile lookup failed", error);
+    return null;
   });
 
   if (!profile || !profile.isActive) return null;
@@ -63,7 +74,10 @@ export async function getAuthenticatedProfile(): Promise<CurrentProfile | null> 
 }
 
 export async function getCurrentProfile(): Promise<CurrentProfile | null> {
-  const profile = await getAuthenticatedProfile();
+  const profile = await getAuthenticatedProfile().catch((error) => {
+    console.error("Authenticated profile lookup failed", error);
+    return null;
+  });
   if (!profile) return null;
 
   const cookieStore = await cookies();
@@ -73,8 +87,9 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
     return profile;
   }
 
-  const impersonatedProfile = await prisma.profile.findUnique({
-    where: { authUserId: impersonatedAuthUserId }
+  const impersonatedProfile = await prisma.profile.findUnique({ where: { authUserId: impersonatedAuthUserId } }).catch((error) => {
+    console.error("Impersonated profile lookup failed", error);
+    return null;
   });
 
   if (!impersonatedProfile || !impersonatedProfile.isActive || impersonatedProfile.role !== "telecaller") {
