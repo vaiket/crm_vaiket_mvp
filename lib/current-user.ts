@@ -35,7 +35,7 @@ function toCurrentProfile(profile: {
 }
 
 export async function getAuthenticatedProfile(): Promise<CurrentProfile | null> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseServerClient({ readOnly: true });
   const {
     data: { user }
   } = await supabase.auth.getUser();

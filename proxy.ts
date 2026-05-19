@@ -20,13 +20,6 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (hasSession && pathname === "/login" && !isExpiredLoginPage) {
-    const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = "/";
-    homeUrl.search = "";
-    return NextResponse.redirect(homeUrl);
-  }
-
   if (hasSession && !isPublic) {
     const lastActivity = Number(request.cookies.get(activityCookieName)?.value ?? "0");
     const now = Date.now();

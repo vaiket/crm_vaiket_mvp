@@ -14,7 +14,7 @@ function getSupabaseEnv() {
   return { anonKey, url };
 }
 
-export async function createSupabaseServerClient() {
+export async function createSupabaseServerClient(options: { readOnly?: boolean } = {}) {
   const cookieStore = await cookies();
   const { anonKey, url } = getSupabaseEnv();
 
@@ -24,6 +24,8 @@ export async function createSupabaseServerClient() {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
+        if (options.readOnly) return;
+
         cookiesToSet.forEach(({ name, options, value }) => {
           cookieStore.set(name, value, options);
         });
