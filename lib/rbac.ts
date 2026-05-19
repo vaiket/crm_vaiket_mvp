@@ -88,12 +88,22 @@ export const rolePermissions: Record<string, string[]> = {
 
 const roles = Object.keys(rolePermissions);
 
+function getRoleKey(role: string) {
+  const normalized = role.trim().toLowerCase().replaceAll(" ", "_");
+
+  if (normalized in rolePermissions) return normalized;
+  if (role in rolePermissions) return role;
+
+  return "telecaller";
+}
+
 export function isValidRole(role: string) {
-  return roles.includes(role);
+  const normalized = role.trim().toLowerCase().replaceAll(" ", "_");
+  return roles.includes(normalized) || roles.includes(role);
 }
 
 export function getAllowedPaths(role: string) {
-  return isValidRole(role) ? rolePermissions[role] : rolePermissions.telecaller;
+  return rolePermissions[getRoleKey(role)];
 }
 
 export function canAccessPath(role: string, pathname: string) {

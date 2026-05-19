@@ -14,6 +14,17 @@ export type CurrentProfile = {
   role: AppRole;
 };
 
+function normalizeRole(role: string): AppRole {
+  const value = role.trim().toLowerCase().replaceAll(" ", "_");
+
+  if (value === "super_admin") return "super_admin";
+  if (value === "admin") return "admin";
+  if (value === "finance") return "finance";
+  if (value === "telecaller") return "telecaller";
+
+  return "telecaller";
+}
+
 function toCurrentProfile(profile: {
   authUserId: string;
   email: string;
@@ -30,7 +41,7 @@ function toCurrentProfile(profile: {
     isActive: profile.isActive,
     name: profile.name,
     phone: profile.phone,
-    role: profile.role as AppRole
+    role: normalizeRole(profile.role)
   };
 }
 

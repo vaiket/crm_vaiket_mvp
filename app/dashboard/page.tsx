@@ -155,7 +155,40 @@ async function getLiveDashboardData(): Promise<SuperAdminDashboardData> {
   };
 }
 
+function getEmptyDashboardData(): SuperAdminDashboardData {
+  return {
+    activeStaff: 0,
+    activeTelecallers: 0,
+    admins: 0,
+    appointmentsToday: 0,
+    connectedCalls: 0,
+    conversions: 0,
+    funnelData: [],
+    hotLeads: 0,
+    leadTrend: lastSixMonths().map((month) => ({
+      calls: 0,
+      leads: 0,
+      name: month.key,
+      won: 0
+    })),
+    pendingFollowups: 0,
+    overdueFollowups: 0,
+    recentActivity: [],
+    recentLeads: [],
+    sourceData: [],
+    teamBreakdown: [],
+    todaysCalls: 0,
+    todaysLeads: 0,
+    totalLeads: 0,
+    workingLeads: 0
+  };
+}
+
 export default async function Page() {
-  const liveData = await getLiveDashboardData();
+  const liveData = await getLiveDashboardData().catch((error) => {
+    console.error("Dashboard live data failed", error);
+    return getEmptyDashboardData();
+  });
+
   return <DashboardPage liveData={liveData} />;
 }
